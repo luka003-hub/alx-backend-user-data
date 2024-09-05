@@ -1,49 +1,71 @@
 #!/usr/bin/env python3
-""" Module of Authentication
 """
+Module for authentication
+"""
+
 from flask import request
 from typing import List, TypeVar
 
 
 class Auth:
-    """ Class to manage the API authentication """
+    """
+    Template for all authentication system implemented in this app.
+    """
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ Method for validating if endpoint requires auth """
-        if path is None or excluded_paths is None or excluded_paths == []:
+        """This function takes a path and a list of excluded paths as arguments
+        and returns a boolean value.
+
+        Returns True if `path` is None.
+        Returns True if `excluded_paths` is None or empty.
+        Returns False if `path` is in `excluded_paths`.
+        You can assume excluded_paths contains string path always ending by
+        a /. This method must be slash tolerant: path=/api/v1/status and
+        path=/api/v1/status/ must be returned False if excluded_paths contains
+        /api/v1/status/.
+
+        Args:
+            path (str): The path to check against the list of excluded paths.
+            excluded_paths (List[str]): The list of excluded paths.
+
+        Returns:
+            bool: True if the path is not in the excluded paths list,
+            False otherwise.
+        """
+        # If path is None, return True
+        if not path:
             return True
-
-        l_path = len(path)
-        if l_path == 0:
+        # If excluded_paths is None or empty, return True
+        if not excluded_paths:
             return True
-
-        slash_path = True if path[l_path - 1] == '/' else False
-
-        tmp_path = path
-        if not slash_path:
-            tmp_path += '/'
-
-        for exc in excluded_paths:
-            l_exc = len(exc)
-            if l_exc == 0:
-                continue
-
-            if exc[l_exc - 1] != '*':
-                if tmp_path == exc:
-                    return False
-            else:
-                if exc[:-1] == path[:l_exc - 1]:
-                    return False
-
+        # Remove the trailing slash from the path
+        path = path.rstrip("/")
+        # Check if path is in excluded_paths and return False if path is
+        # in excluded_paths
+        # Loop through excluded paths
+        for excluded_path in excluded_paths:
+            # Check if given path starts with excluded path, with * at the end
+            if excluded_path.endswith("*") and \
+                    path.startswith(excluded_path[:-1]):
+                # Return False if path starts with excluded path with * at end
+                return False
+            # Check if the given path is equal to the excluded path
+            elif path == excluded_path.rstrip("/"):
+                # Return False if the path is equal to the excluded path
+                return False
+        # If path is not in excluded_paths, return True
         return True
 
     def authorization_header(self, request=None) -> str:
-        """ Method that handles authorization header """
+        """
+        Method to retrieve the authorization header from a request
+        """
         if request is None:
             return None
-
-        return request.headers.get("Authorization", None)
+        return request.headers.get('Authorization', None)
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """ Validates current user """
+        """
+        Method to retrieve the current user
+        """
         return None
